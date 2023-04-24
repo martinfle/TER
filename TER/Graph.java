@@ -8,9 +8,17 @@ public class Graph {
     int[][] puzzle;
     List<Integer>[] adjList;
     final int n;
+    static Random rand;
+
+    public Graph (Graph g) {
+        this.puzzle = g.puzzle;
+        this.adjList = g.adjList;
+        this.n = g.n;        
+    }
 
     public Graph (int n) {
         this.n = n;
+        if (rand == null) rand = new Random();
         puzzle = new int[n*n][n*n];
         adjList = new ArrayList[n*n*n*n];
         
@@ -87,21 +95,21 @@ public class Graph {
 
 /* Fonctions de permutations */
     public void permutationAleatoire () {
-        Random random = new Random();
-        for (int j = 0; j< random.nextInt(100); j++) {
-            for (int i = 0; i< random.nextInt(n*n) + 1; i++) {
+        
+        for (int j = 0; j< rand.nextInt(100); j++) {
+            for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
                 permutationColonneCarré(getPermutation(n));           
             }   
             
-            for (int i = 0; i< random.nextInt(n*n) + 1; i++) {
+            for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
                 permutationLigneCarré(getPermutation(n));           
             } 
-            for (int i = 0; i< random.nextInt(n*n) + 1; i++) {
-                permutationColonne(getPermutation(n), random.nextInt(n));           
+            for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
+                permutationColonne(getPermutation(n), rand.nextInt(n));           
             }   
             
-            for (int i = 0; i< random.nextInt(n*n) + 1; i++) {
-                permutationLigne(getPermutation(n), random.nextInt(n));           
+            for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
+                permutationLigne(getPermutation(n), rand.nextInt(n));           
             }  
         }   
     }
@@ -178,10 +186,10 @@ public class Graph {
     // Fonctions pour créer un sudoku a partir d'une grille remplie
 
     public void emptySudoku (double epsilon) {
-        Random random = new Random();
+        
         for (int i = 0; i< n*n; i++) {
             for (int j= 0; j< n*n; j++) {
-                if (random.nextDouble() < epsilon) {
+                if (rand.nextDouble() < epsilon) {
                     puzzle[i][j] = 0;
                 }
             }
