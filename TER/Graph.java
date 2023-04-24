@@ -2,11 +2,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Collections;
+import java.util.HashMap;
 
 public class Graph {
 
     int[][] puzzle;
-    List<Integer>[] adjList;
+    HashMap<Integer, List<Integer>> values;
+    HashMap<Integer, List<Integer>> adjList;
     final int n;
     static Random rand;
 
@@ -20,11 +22,12 @@ public class Graph {
         this.n = n;
         if (rand == null) rand = new Random();
         puzzle = new int[n*n][n*n];
-        adjList = new ArrayList[n*n*n*n];
-        
+        values = new HashMap<>();
+        adjList = new HashMap<>();
 
         for (int i = 0; i< n*n*n*n; i++) {
-            adjList[i] = new ArrayList<>();
+            adjList.put(i, new ArrayList<>());
+            values.put(i, new ArrayList<>());
         }
 
         for (int i = 0; i< n*n; i++) {
@@ -33,13 +36,13 @@ public class Graph {
                 for (int k = 0; k< n*n; k++) {
                     if (k != j) {
                         int neighbor = i* n*n +k;
-                        adjList[node].add(neighbor);
+                        adjList.get(node).add(neighbor);
                     }
                 }
                 for (int k=0; k<n*n; k++) {
                     if (k != i ) {
                         int neighbor = k*n*n+j;
-                        adjList[node].add(neighbor);
+                        adjList.get(node).add(neighbor);
                     }
                 }
 
@@ -50,7 +53,7 @@ public class Graph {
                     for (int l = boxCol; l < boxCol+n; l++) {
                         if (k!=i && l!= j) {
                             int neighbor = k*n*n+l;
-                            adjList[node].add(neighbor);
+                            adjList.get(node).add(neighbor);
                         }
                     }
                 }
@@ -84,10 +87,10 @@ public class Graph {
     }
 
     public void printAdjList () {
-        for (int i = 0; i< adjList.length; i++) {
+        for (int i = 0; i< adjList.size(); i++) {
             System.out.print(i + " : ");
-            for (int j = 0; j< adjList[i].size(); j++) {
-                System.out.print(adjList[i].get(j) + " ");
+            for (int j = 0; j< adjList.get(i).size(); j++) {
+                System.out.print(adjList.get(i).get(j) + " ");
             }
             System.out.println();
         }
@@ -193,6 +196,29 @@ public class Graph {
                     puzzle[i][j] = 0;
                 }
             }
+        }
+    }
+
+    public void remplirGraph () {
+        for (int i = 0; i< n*n; i++) {
+            for (int j = 0; j< n*n; j++) {
+                if (puzzle[i][j] != 0) values.get(i*n*n+j).add(puzzle[i][j]);
+                else {
+                    for (int k = 1; k< n*n +1; k++) {
+                        values.get(i*n*n+j).add(k);
+                    }
+                }
+            }
+        }
+    }
+
+    public void printGraph () {
+        for (int i = 0; i< values.size(); i++) {
+            System.out.print(i + " : ");
+            for (int j = 0; j< values.get(i).size(); j++) {
+                System.out.print(values.get(i).get(j) + " ");
+            }
+            System.out.println();
         }
     }
 

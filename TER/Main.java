@@ -3,8 +3,13 @@ import java.io.IOException;
 
 public class Main {
     public static void main (String[] args) {
-        writeSudokuIntoFile(3);
-        
+        //writeSudokuIntoFile(3);
+        Parseur p = new Parseur();
+        Graph g = p.parse("TER/Sudoku/3_1");
+        g.printValue();
+        g.printAdjList();
+        g.remplirGraph();
+        g.printGraph();
     }
 
     public static void writeSudokuIntoFile (int size) {
@@ -12,7 +17,7 @@ public class Main {
         g.remplirRoot();
         for (int i = 1; i<10; i++) {
             try {
-                FileWriter writer = new FileWriter("Sudoku/" + size +"_"+String.valueOf((int) (i)));
+                FileWriter writer = new FileWriter("TER/Sudoku/" + size +"_"+String.valueOf((int) (i)));
                 g.permutationAleatoire();
 
                 Graph g2 = new Graph(g);
