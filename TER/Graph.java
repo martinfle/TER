@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Collections;
 import java.util.HashMap;
@@ -87,10 +88,10 @@ public class Graph {
     }
 
     public void printAdjList () {
-        for (int i = 0; i< adjList.size(); i++) {
-            System.out.print(i + " : ");
-            for (int j = 0; j< adjList.get(i).size(); j++) {
-                System.out.print(adjList.get(i).get(j) + " ");
+        for (Map.Entry<Integer, List<Integer>> entry: adjList.entrySet()) {
+            System.out.print(entry.getKey() + " : ");
+            for (int i = 0; i< entry.getValue().size(); i++) {
+                System.out.print(entry.getValue().get(i) + " ");
             }
             System.out.println();
         }
@@ -100,6 +101,7 @@ public class Graph {
     public void permutationAleatoire () {
         
         for (int j = 0; j< rand.nextInt(100); j++) {
+            
             for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
                 permutationColonneCarré(getPermutation(n));           
             }   
@@ -107,13 +109,15 @@ public class Graph {
             for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
                 permutationLigneCarré(getPermutation(n));           
             } 
+            
             for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
                 permutationColonne(getPermutation(n), rand.nextInt(n));           
             }   
             
             for (int i = 0; i< rand.nextInt(n*n) + 1; i++) {
                 permutationLigne(getPermutation(n), rand.nextInt(n));           
-            }  
+            } 
+            
         }   
     }
 
@@ -165,9 +169,9 @@ public class Graph {
         int permCol = permutation.get(i) -1;
         if (i != permCol) {
             for (int j = 0; j< n*n; j++) {
-                int tmp = puzzle[j][i*col];
-                puzzle[j][i*col] = puzzle[j][permCol*col];
-                puzzle[j][permCol*col] = tmp;
+                int tmp = puzzle[j][n*col+i];
+                puzzle[j][n*col + i] = puzzle[j][n*col + permCol];
+                puzzle[j][n*col + permCol] = tmp;
             }
         }
        }
@@ -178,9 +182,9 @@ public class Graph {
             int permCol = permutation.get(i) -1;
             if (i != permCol) {
                 for (int j = 0; j< n*n; j++) {
-                    int tmp = puzzle[i*col][j];
-                    puzzle[i*col][j] = puzzle[permCol*col][j];
-                    puzzle[permCol*col][j] = tmp;
+                    int tmp = puzzle[n*col+i][j];
+                    puzzle[n*col+i][j] = puzzle[n*col + permCol][j];
+                    puzzle[n*col + permCol][j] = tmp;
                 }
             }
         }
@@ -213,10 +217,10 @@ public class Graph {
     }
 
     public void printGraph () {
-        for (int i = 0; i< values.size(); i++) {
-            System.out.print(i + " : ");
-            for (int j = 0; j< values.get(i).size(); j++) {
-                System.out.print(values.get(i).get(j) + " ");
+        for (Map.Entry<Integer, List<Integer>> entry: values.entrySet()) {
+            System.out.print(entry.getKey() + " : ");
+            for (int i = 0; i< entry.getValue().size(); i++) {
+                System.out.print(entry.getValue().get(i) + " ");
             }
             System.out.println();
         }

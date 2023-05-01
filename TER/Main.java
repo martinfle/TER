@@ -3,13 +3,31 @@ import java.io.IOException;
 
 public class Main {
     public static void main (String[] args) {
+        
         //writeSudokuIntoFile(3);
+        ///* 
         Parseur p = new Parseur();
-        Graph g = p.parse("TER/Sudoku/3_1");
-        g.printValue();
-        g.printAdjList();
-        g.remplirGraph();
-        g.printGraph();
+        Graph g = p.parse("TER/Sudoku/3_5");
+        //Graph g = new Graph(3);
+        //g.remplirRoot();
+        //g.permutationAleatoire();
+        //g.emptySudoku(0.1);
+        Algorithm a = new Algorithm(g);
+        a.g.printValue();
+        System.out.println("*********");
+        a.g.printAdjList();
+        System.out.println("*********");
+        a.g.remplirGraph();
+        a.g.printGraph();
+        System.out.println("*********");
+        a.preprocess();
+        a.g.printValue();
+        System.out.println("*********");
+        a.g.printAdjList();
+        System.out.println("*********");
+        a.g.printGraph();
+        System.out.println("*********");
+        //*/
     }
 
     public static void writeSudokuIntoFile (int size) {
