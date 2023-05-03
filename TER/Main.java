@@ -7,7 +7,7 @@ public class Main {
         //writeSudokuIntoFile(3);
         ///* 
         Parseur p = new Parseur();
-        Graph g = p.parse("TER/Sudoku/3_5");
+        Graph g = p.parse("TER/Sudoku/3_4");
         //Graph g = new Graph(3);
         //g.remplirRoot();
         //g.permutationAleatoire();
@@ -26,6 +26,8 @@ public class Main {
         a.g.printAdjList();
         System.out.println("*********");
         a.g.printGraph();
+        System.out.println("*********");
+        a.MMCOL();
         System.out.println("*********");
         //*/
     }
