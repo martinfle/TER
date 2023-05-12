@@ -77,10 +77,34 @@ public class Algorithm {
     private HashMap<Integer, Integer> ITS (HashMap<Integer, Integer> c, int alpha) {
         HashMap<Integer, Integer> best_color = c;
         int best_fitness = fitness(c);
+        int maxLSIters = 100;        
         do {
-            
-        } while ()
+            // Faire une recherche Tabou avec la solution c.
+            HashMap<Integer, Integer> c1 = TS(c, alpha);
+            int new_fitness = fitness(c1);
+            if (new_fitness < best_fitness) {
+                best_fitness = new_fitness;
+                best_color = c1;
+            }
+            // si c1 n'est pas une coloration légale, faire une perturbation.
+            if (new_fitness != 0) {
+                c1 = perturbation_procedure(c1);
+            } else {
+                return best_color;
+            }
+            maxLSIters --;
+        } while (maxLSIters > 0);
     }
+    private HashMap<Integer, Integer> perturbation_procedure(HashMap<Integer, Integer> c1) {
+        return null;
+    }
+
+    // Tabou Search
+    private HashMap<Integer, Integer> TS(HashMap<Integer, Integer> c, int alpha) {
+        
+        return null;
+    }
+
     public HashMap <Integer, Integer> MAGX (HashMap<Integer, Integer> s1, HashMap<Integer, Integer> s2) {
         int cc = 0;
         ArrayList<Integer> residualCapacity = getResidualCapacity();        
