@@ -14,9 +14,28 @@ public class Graph {
     static Random rand;
 
     public Graph (Graph g) {
-        this.puzzle = g.puzzle;
-        this.adjList = g.adjList;
         this.n = g.n;        
+        this.puzzle = new int[n*n][n*n]; 
+        this.values = new HashMap<>();
+        this.adjList = new HashMap<>(); 
+        for (int i=0; i< n*n; i++) {
+            for (int j = 0; j< n*n; j++) {
+                this.puzzle[i][j] = g.puzzle[i][j];
+            }
+        }
+        for (Map.Entry<Integer, List<Integer>> entry: g.values.entrySet()) {
+            ArrayList<Integer> value = new ArrayList<>();
+            ArrayList<Integer> adj = new ArrayList<>();
+            for (int i=0; i< entry.getValue().size(); i++) {
+                value.add(entry.getValue().get(i));
+            }
+            for (int i=0; i< g.adjList.get(entry.getKey()).size(); i++) {
+                adj.add(g.adjList.get(entry.getKey()).get(i));
+            }
+            this.values.put(entry.getKey(), value);
+            this.adjList.put(entry.getKey(), adj);
+
+        }
     }
 
     public Graph (int n) {
