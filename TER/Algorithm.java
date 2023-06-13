@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,10 +22,10 @@ public class Algorithm {
         int k = 0;
         while (true) {
             v = -1;
-            for (Map.Entry<Integer, List<Integer>> entry: graph.values.entrySet()) {
+            for (Map.Entry<Integer, HashSet<Integer>> entry: graph.values.entrySet()) {
                 if(entry.getValue().size() == 1) {
                     v = entry.getKey();
-                    k= entry.getValue().get(0);
+                    k= entry.getValue().iterator().next();
                     graph.puzzle[v/(graph.n* graph.n)][v%(graph.n*graph.n)] = k;
                     break;
                 }
@@ -32,7 +33,7 @@ public class Algorithm {
             if (v == -1) return;
             graph.values.remove(v);
             graph.adjList.remove(v);
-            for (Map.Entry<Integer, List<Integer>> entry: graph.adjList.entrySet()) {
+            for (Map.Entry<Integer, HashSet<Integer>> entry: graph.adjList.entrySet()) {
                 if (entry.getValue().contains(v)) {
                     int key = entry.getKey();
                     graph.values.get(key).remove((Object) k);
@@ -216,11 +217,11 @@ public class Algorithm {
             c.remove(i);
         }
 
-        for (Map.Entry<Integer, List<Integer>> entry : g.adjList.entrySet()) {
+        for (Map.Entry<Integer, HashSet<Integer>> entry : g.adjList.entrySet()) {
             if (entry.getValue().removeAll(X));
         }
        
-        // Faire le TS avec ce nouveau graph
+        // Faire le TS avec ce CEnouveau graph
         HashMap<Integer, Integer> amelioration = TS(c, 100, g, thread);
         if (Thread.currentThread().isInterrupted()) return null;
         // Fusionner G' et G
@@ -249,9 +250,9 @@ public class Algorithm {
                 int currentColor = sommet.getValue();
                
                 // Parcours les couleurs possibles
-                for (int j = 0; j< g.values.get(sommet.getKey()).size(); j++) {
-                    if (g.values.get(sommet.getKey()).get(j) != currentColor) {                        
-                        c.put(sommet.getKey(),g.values.get(sommet.getKey()).get(j));                        
+                for (Integer j : g.values.get(sommet.getKey())) {
+                    if (j != currentColor) {                        
+                        c.put(sommet.getKey(),j);                        
                         int fitness = fitness(c,g, thread);   
                         if (Thread.currentThread().isInterrupted()) return null;                     
                         if (fitness < best_f && !tabuList.contains(sommet)) {
@@ -402,7 +403,12 @@ public class Algorithm {
 
     private int chooseRandomColor (int value, Graph g) {
         int resultat = (int) (Math.random() * g.values.get(value).size());
-        return g.values.get(value).get(resultat);
+        int couleur = 0;
+        Iterator<Integer> it = g.values.get(value).iterator();
+        for (int i=0; i< resultat; i++) {
+            it.next();
+        }
+        return it.next();
     }
     private ArrayList<Integer> intersection(ArrayList<Integer> arrayList, ArrayList<Integer> arrayList2) {
         ArrayList<Integer> intersection = new ArrayList<>();
@@ -434,7 +440,7 @@ public class Algorithm {
         for (int i=0; i< p; i++) {
             P.add(new HashMap<>());
             for (int j=0; j < graph.values.size(); j++) {
-                for (Map.Entry<Integer, List<Integer>> entry: graph.values.entrySet()) {
+                for (Map.Entry<Integer, HashSet<Integer>> entry: graph.values.entrySet()) {
                     int val = chooseRandomColor(entry.getKey(), graph);
                     P.get(i).put(entry.getKey(), val);
                 }
@@ -445,7 +451,7 @@ public class Algorithm {
 
     public int fitness (HashMap<Integer, Integer> solution, Graph g, Thread thread) {
         int fitness = 0;
-        for (Map.Entry<Integer, List<Integer>> entry: g.adjList.entrySet()) {
+        for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
                 int sommet = entry.getKey();
                 int couleur = solution.get(sommet);
                 if (Thread.currentThread().isInterrupted()) return -1;
