@@ -1,0 +1,21 @@
+<instance format="XCSP3" type="CSP">
+  <variables>
+    <array id="resultat" size="[4][4]"> 1..4 </array>
+  </variables>
+  <constraints>
+    <allDifferent>
+      <matrix> resultat[][] </matrix>
+    </allDifferent>
+    <group>
+      <allDifferent> %... </allDifferent>
+      <args> resultat[0..1][0..1] </args>
+      <args> resultat[0..1][2..3] </args>
+      <args> resultat[2..3][0..1] </args>
+      <args> resultat[2..3][2..3] </args>
+    </group>
+    <instantiation>
+      <list> resultat[0][] resultat[1][2..3] resultat[2][2] resultat[3][0..2] </list>
+      <values> 1 2 3 4 1 2 4 4 1 2 </values>
+    </instantiation>
+  </constraints>
+</instance>

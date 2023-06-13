@@ -41,39 +41,33 @@ def creat_graph (n) :
     
     return graph
 
-def trouverSolution (n , sudoku, graph, queue) :
+def trouverSolution (n,sudoku, queue) :
     clear()    
     
-    resultat = VarArray(size = n*n*n*n, dom = range(1,n*n+1))   
-
+    resultat = VarArray(size = [n*n,n*n], dom = range(1,n*n+1))   
+    
       
     start = time.time()
-    for i in range (len(sudoku)) :
-        for j in graph[i] :        
-            satisfy (
-                resultat[i] != resultat [j]
-            )
-
-    for i in range(len(sudoku)) :
-        if sudoku[i] != 0 :
-            satisfy (
-                resultat[i] == sudoku[i]
-            )          
-        
-
+    satisfy (
+        [resultat[i][j] == sudoku[i*n*n+j] for i in range (n*n) for j in range(n*n) if sudoku[i*n*n+j] != 0],
+   
+        AllDifferent(resultat, matrix = True),
+    
+        [AllDifferent(resultat[i:i+n, j:j+n]) for i in range(0, n*n-n+1, n) for j in range(0,n*n-n+1,n)]
+    ) 
+    
     if solve () is SAT:
-        end = time.time() - start
-        print(values(resultat))
+        end = time.time() - start        
         queue.put(end)    
     
-def run_code (n, sudoku, graph, queue) :
+def run_code (n, sudoku, queue) :
     try :
-        trouverSolution(n, sudoku, graph, queue)
+        trouverSolution(n, sudoku, queue)
     except:
         pass
 
 fichier = open("resultat_pycsp3","w")
-for i in range (4,10) :   
+for i in range (3,4) :   
     for j in range (3,9) : 
         result = []
         for l in range (2) :
@@ -82,20 +76,16 @@ for i in range (4,10) :
             queue = mp.Queue()
             sudoku_file = "TER/Sudoku/"+str(i)+"_"+str(j)+"_"+str(k)
             n, sudoku = parse_sudoku(sudoku_file)
-            graph = creat_graph(4)
-            process = mp.Process(target = run_code, args=(n, sudoku, graph, queue))
-            process.start()
-            time.sleep(60)
-
+            
+            process = mp.Process(target = run_code, args=(n, sudoku, queue))
+            process.start()            
+            process.join(60) 
             if process.is_alive() :
-                process.terminate()
-                process.join()
-                print("c'est raté")
+                process.terminate()                               
             else :
                 x = queue.get()
                 result[0] += x
-                result[1] += 1
-                print("bravo")
+                result[1] += 1                
         if result[1] == 0:
             result[1] = 1
         fichier.write("sudoku de type "+ str(i) + " " + str(j) + " temps d'execution moyen: " + str(result[0]/result[1]) + " nombre de réussite : " + str(result[1]) + "/100\n")
