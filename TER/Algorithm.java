@@ -1,3 +1,4 @@
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,16 +46,16 @@ public class Algorithm {
         }
     }
 
-    public void MMCOL (Thread thread) {        
+    public void MMCOL () {        
         // Générer p solutions initiales à G.
         ArrayList<HashMap<Integer, Integer>> P = population_Initialisation(20);        
         // Enregistrer la solution initiale de P avec le meilleur score.
-        int best_fitness = fitness(P.get(0), graph, thread);
-        if (Thread.currentThread().isInterrupted()) return;
+        int best_fitness = fitness(P.get(0), graph);
+        if (best_fitness == -1) return;
         HashMap<Integer, Integer> best_solution = P.get(0);
         for (int i=1; i< P.size(); i++) {
-            int fitness = fitness(P.get(i), graph, thread);
-            if (Thread.currentThread().isInterrupted()) return;
+            int fitness = fitness(P.get(i), graph);
+            if (fitness == -1) return;
             if (fitness < best_fitness) {
                 best_fitness = fitness;
                 best_solution = P.get(i);
@@ -81,7 +82,7 @@ public class Algorithm {
             if (Thread.currentThread().isInterrupted()) return;
             //System.out.println("MAGX : " +s); 
             // Améliorer la solution avec l'algorithme Tabu                    
-            s = ITS(s, 100, thread); 
+            s = ITS(s, 100000); 
             if (Thread.currentThread().isInterrupted()) return;
             /* 
             System.out.println("ITS : " + s);
@@ -90,8 +91,8 @@ public class Algorithm {
             System.out.println("*********");
             graph.printAdjList();
             */
-            int fitness_s = fitness(s, graph, thread);
-            if (Thread.currentThread().isInterrupted()) return;
+            int fitness_s = fitness(s, graph);
+            if (fitness_s == -1) return;
             if (fitness_s < best_fitness) {
                 best_solution = s;
                 best_fitness = fitness_s;
@@ -101,7 +102,7 @@ public class Algorithm {
             P.add(s);
             ArrayList<Double> score = new ArrayList<>();
             for (int i=0; i< P.size(); i++) {
-                score.add(score(P, i, thread));
+                score.add(score(P, i));
             }
             if (Thread.currentThread().isInterrupted()) return;
             double lowest1 = Integer.MAX_VALUE;
@@ -153,42 +154,42 @@ public class Algorithm {
         return div;
     } 
 
-    private double score (ArrayList<HashMap<Integer, Integer>> p, int i, Thread thread) {
-        return fitness(p.get(i), graph, thread) + Math.exp((0.08 * graph.n * graph.n)/ diversity(p, i));
+    private double score (ArrayList<HashMap<Integer, Integer>> p, int i) {
+        return fitness(p.get(i), graph) + Math.exp((0.08 * graph.n * graph.n)/ diversity(p, i));
     }
 
-    private HashMap<Integer, Integer> ITS (HashMap<Integer, Integer> c, int alpha, Thread thread) {
+    private HashMap<Integer, Integer> ITS (HashMap<Integer, Integer> c, int alpha) {
         HashMap<Integer, Integer> best_color = c;
-        int best_fitness = fitness(c, graph, thread);
-        if (Thread.currentThread().isInterrupted()) return null;
+        int best_fitness = fitness(c, graph);
+        if (best_fitness == -1) return null;
         int maxLSIters = 100;  
-        HashMap<Integer, Integer> c1 = new HashMap<>();      
+        //HashMap<Integer, Integer> c1 = new HashMap<>();      
         do {
             
             // Faire une recherche Tabou avec la solution c.
-            c1 = TS(c, alpha, graph, thread);
+            c = TS(c, alpha, graph);
             if(Thread.currentThread().isInterrupted()) return null;
 
-            int new_fitness = fitness(c1, graph, thread);
-            if (Thread.currentThread().isInterrupted()) return null;
+            int new_fitness = fitness(c, graph);
+            if (new_fitness == -1) return null;
             if (new_fitness < best_fitness) {
                 best_fitness = new_fitness;
-                best_color = c1;
+                best_color = new HashMap<>(c);
             }
             // si c1 n'est pas une coloration légale, faire une perturbation.
             if (new_fitness != 0) {
-                c1 = perturbation_procedure(c1, thread);
+                c = perturbation_procedure(c);
                 if (Thread.currentThread().isInterrupted()) return null;
             } else {
                 return best_color;
             }
             maxLSIters --;
         } while (maxLSIters > 0 && best_fitness > 0);
-        return c1;
+        return best_color;
     }
 
     // Fonction pour partir d'un minimum local
-    private HashMap<Integer, Integer> perturbation_procedure(HashMap<Integer, Integer> c1, Thread thread) {
+    private HashMap<Integer, Integer> perturbation_procedure(HashMap<Integer, Integer> c1) {
         // Ne garder que les sommets qui posent problème
         ArrayList<Integer> X = new ArrayList<>();
         
@@ -221,8 +222,10 @@ public class Algorithm {
             if (entry.getValue().removeAll(X));
         }
        
-        // Faire le TS avec ce CEnouveau graph
-        HashMap<Integer, Integer> amelioration = TS(c, 100, g, thread);
+
+        // Faire le TS avec ce nouveau graph
+        HashMap<Integer, Integer> amelioration = TS(c, 100, g);
+
         if (Thread.currentThread().isInterrupted()) return null;
         // Fusionner G' et G
         for (Map.Entry<Integer, Integer> entry : amelioration.entrySet()) {
@@ -233,23 +236,34 @@ public class Algorithm {
     }
 
     // Tabou Search
-    private HashMap<Integer, Integer> TS(HashMap<Integer, Integer> c, int alpha, Graph g, Thread thread) {
-        //System.out.println("Valeurs a améliorer : " + c);
-        Set<Map.Entry<Integer, Integer>> tabuList = new HashSet<>();       
+    // TODO: Ajouter le fait de déplacer un sommet en conflit
+    private HashMap<Integer, Integer> TS(HashMap<Integer, Integer> c, int alpha, Graph g) {
         
+        //System.out.println("Valeurs a améliorer : " + c);
+        HashMap<Map.Entry<Integer, Integer>, Integer> tabuList = new HashMap<>();     
+        HashMap<Integer, Integer> sBest = new HashMap<>(c);
+        HashMap<Integer, Integer> bestCandidate = new HashMap<>(c);
+        ArrayList<Integer> sVoisins = conflicting_vertex(bestCandidate, g); 
+        int best_f = fitness(c,g);        
+        //System.out.println("On commence le tabou :" + best_f);
+        boolean b = false;
+        int maxTabuSize =(int) (0.6 * best_f + Math.random()*10);
         // boucle principale
-        for (int i = 0; i< alpha; i ++) {
-            
-            int best_f = fitness(c, g, thread);
-            if (Thread.currentThread().isInterrupted()) return null;
-            HashMap<Integer, Integer> best_c = new HashMap<>(c);
+        for (int i = 0; i< alpha; i ++) { 
+            c = new HashMap<>(bestCandidate);         
+            if (b) {
+                sVoisins = conflicting_vertex(bestCandidate, g);
+                b = false;
+            }
             Map.Entry<Integer, Integer> bestMove = null;
-            
+            int best_fc = Integer.MAX_VALUE;
             // Recherche meilleur mouvement non tabou
-            for (Map.Entry<Integer, Integer> sommet : c.entrySet()) {
+            for (Integer entry : sVoisins) {
+                Map.Entry<Integer, Integer> sommet = new AbstractMap.SimpleEntry<>(entry, c.get(entry));
                 int currentColor = sommet.getValue();
                
                 // Parcours les couleurs possibles
+
                 for (Integer j : g.values.get(sommet.getKey())) {
                     if (j != currentColor) {                        
                         c.put(sommet.getKey(),j);                        
@@ -258,8 +272,10 @@ public class Algorithm {
                         if (fitness < best_f && !tabuList.contains(sommet)) {
                             best_f = fitness;
                             best_c = new HashMap<>(c);
+
                             bestMove = sommet;  
-                            if (best_f == 0) return best_c;
+                            best_fc = fitness;
+                            if (best_fc == 0) return bestCandidate;
                             //System.out.println("meilleur : " + best_c + " fitness : "+ best_f + " sommet changé : "+ sommet.getKey());    
                         }
                     }
@@ -269,17 +285,35 @@ public class Algorithm {
                 c.put(sommet.getKey(), currentColor);
                 
             }
-            
+            if (best_fc < best_f) {                
+                sBest = new HashMap<>(bestCandidate);
+                best_f = best_fc;
+                //System.out.println("new record: " + best_f);
+            }
+
             if (bestMove != null) {
                 // On ajoute le meilleur mouvement
-                bestMove.setValue(best_c.get(bestMove.getKey()));
-                tabuList.add(bestMove);                
+                bestMove.setValue(bestCandidate.get(bestMove.getKey()));
+                tabuList.put(bestMove, maxTabuSize);                
             }
+            HashMap<Map.Entry<Integer, Integer>, Integer> cpTAbu = new HashMap<>(tabuList);
+            for (Map.Entry<Map.Entry<Integer, Integer>, Integer> entry : cpTAbu.entrySet()) {
+                if (entry.getValue() > 0) tabuList.put(entry.getKey(), entry.getValue()-1);
+                else {
+                    tabuList.remove(entry.getKey());                
+                }
+            }
+            
         }
 
-        return c;
+        return sBest;
     }
-
+    public boolean isTabu (Map.Entry<Integer, Integer> solution, HashMap<Map.Entry<Integer, Integer>, Integer> tabuList) {
+        for (Map.Entry<Integer, Integer> entry : tabuList.keySet()) {
+            if (solution.getKey() == entry.getKey() && solution.getValue() == entry.getValue()) return true;
+        }
+        return false;
+    }
     public HashMap <Integer, Integer> MAGX (HashMap<Integer, Integer> s1, HashMap<Integer, Integer> s2, Graph g) {
         int cc = 0;
         //System.out.println("s1: " + s1);
@@ -449,7 +483,7 @@ public class Algorithm {
         return P;
     }
 
-    public int fitness (HashMap<Integer, Integer> solution, Graph g, Thread thread) {
+    public int fitness (HashMap<Integer, Integer> solution, Graph g) {
         int fitness = 0;
         for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
                 int sommet = entry.getKey();
@@ -463,6 +497,17 @@ public class Algorithm {
         return fitness;
     }
 
+    public ArrayList<Integer> conflicting_vertex (HashMap<Integer, Integer> solution, Graph g) {
+        ArrayList<Integer> resultat = new ArrayList<>();
+        for (Map.Entry<Integer, List<Integer>> entry: g.adjList.entrySet()) {
+            int sommet = entry.getKey();
+            int couleur = solution.get(sommet);
+            for (int voisin : entry.getValue()) {
+                if (solution.get(voisin) == couleur && !resultat.contains(sommet)) resultat.add(sommet); 
+            }
+        }
+        return resultat;
+    }
     
 
     private void printHashMap (HashMap <Integer, Integer> map) {
