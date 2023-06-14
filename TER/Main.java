@@ -11,10 +11,12 @@ public class Main {
         
         //writeSudokuIntoFile(9);
 
-      /*
+
+    /*
+
         Parseur p = new Parseur();
 
-        Graph g = p.parse("TER/Sudoku/3_8_4");
+        Graph g = p.parse("TER/Sudoku/3_8_0");
 
         //Graph g = new Graph(3);
         //g.remplirRoot();
@@ -24,18 +26,21 @@ public class Main {
         Algorithm a = new Algorithm(g);       
         
         a.graph.remplirGraph();
-        a.graph.countCarac();
-        a.preprocess();        
-        a.graph.countCarac();
-        /*
+        
+        a.preprocess(); 
+        a.graph.countCarac();       
+        //a.graph.countCarac();
+        
         long start = System.currentTimeMillis();
         a.MMCOL();
         System.out.println((System.currentTimeMillis()-start));
         a.graph.printValue();
         System.out.println("*********");
 
-       //*/ 
-    // /*         
+
+       */
+              
+
 
     for (int k = 3; k< 4; k++) {  
         for (int i = 3; i< 9; i++) {
@@ -50,23 +55,17 @@ public class Main {
                 a = new Algorithm(g);
                 a.graph.remplirGraph();
                 long start = System.currentTimeMillis();
-                ///*
-                Thread programmThread = new Thread(new ProgramRunnable());
-                programmThread.start();
-                try {
-                    programmThread.join(60000);
-                    if (programmThread.isAlive()) {
-                        programmThread.interrupt();                                     
+                ///*              
+                a.preprocess();
+                int result = a.MMCOL(); 
+                long end = System.currentTimeMillis() - start;
+                if (result == 1) {
+                    réussite ++;
+                    temps += end;
+                } 
 
-                    }
-
-                    else {                       
-                        temps += time;
-                        réussite++;
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                   
+                
                 //*/
                 /*
                 a.preprocess();
@@ -88,13 +87,16 @@ public class Main {
             //nbCouleur = nbCouleur/100;
             System.out.println("Sudoku de type " + Integer.toString(k) + " " + Integer.toString(i) + " temps moyen :" + Double.toString((double) (temps/(réussite*1000)))  + " réussite : " + Integer.toString(réussite)+ "/100"); 
             //System.out.println("Sudoku de type " + Integer.toString(k) + " " + Integer.toString(i) + " nbSommet moyen :" + Integer.toString(nbSommet)  + " nbArc moyen : " + Integer.toString(nbArc)+ " nbCouleur moyen : " + Integer.toString(nbCouleur));
-            
+
         }
+        
     } 
     
     //*/
 
- }
+
+    }
+
     static class ProgramRunnable extends Thread {
         public void run () {            
                 long start = System.currentTimeMillis();
