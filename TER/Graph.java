@@ -9,7 +9,7 @@ import java.util.HashSet;
 public class Graph {
 
     int[][] puzzle;
-    HashMap<Integer, HashSet<Integer>> values;
+    HashMap<Integer, HashSet <Integer>> values;
     HashMap<Integer, HashSet<Integer>> adjList;
     final int n;
     static Random rand;
@@ -96,13 +96,18 @@ public class Graph {
     }
 
     public void printAdjList () {
+        int edge = 0;
+        int edge2 = 0;
         for (Map.Entry<Integer, HashSet<Integer>> entry: adjList.entrySet()) {
-            System.out.print(entry.getKey() + " : ");
-            for (int i : entry.getValue()) {
-                System.out.print(i + " ");
+            
+            for (Integer i : entry.getValue()) {                
+                if (entry.getKey() < i) {
+                    System.out.println(entry.getKey() + "-" + i);
+                }
             }
-            System.out.println();
+            
         }
+        
     }
 
 /* Fonctions de permutations */
@@ -226,12 +231,27 @@ public class Graph {
 
     public void printGraph () {
         for (Map.Entry<Integer, HashSet<Integer>> entry: values.entrySet()) {
-            System.out.print(entry.getKey() + " : ");
-            for (int i : entry.getValue()) {
+            System.out.print(entry.getKey() + " & ");
+            for (Integer i : entry.getValue()) {
                 System.out.print(i + " ");
             }
             System.out.println();
         }
     }
 
+    public void countCarac () {
+        System.out.println("Nombre de valeurs : " + values.size());
+        int count = 0;
+        for (Map.Entry<Integer, HashSet<Integer>> entry: adjList.entrySet()) {
+            for (Integer i : entry.getValue()) {
+               if (entry.getKey() < i) count++;
+            }
+        }
+        System.out.println("Nombre d'arêtes : " + count);
+        count = 0;
+        for (Map.Entry<Integer, HashSet<Integer>> entry: values.entrySet()) {            
+            count += entry.getValue().size();
+        }
+        System.out.println("Nombre de valeurs possibles : " + count);
+    }
 }

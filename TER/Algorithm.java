@@ -223,6 +223,7 @@ public class Algorithm {
             if (entry.getValue().removeAll(X));
         }
        
+
         // Faire le TS avec ce nouveau graph
         HashMap<Integer, Integer> amelioration = TS(c, 100, g);
         if (amelioration == null) return null;
@@ -435,13 +436,12 @@ public class Algorithm {
 
     private int chooseRandomColor (int value, Graph g) {
         int resultat = (int) (Math.random() * g.values.get(value).size());
+        int couleur = 0;
         Iterator<Integer> it = g.values.get(value).iterator();
-        int couleur = -1;
-        for (int i=0; i<= resultat; i++) {
-            couleur = it.next();
+        for (int i=0; i< resultat; i++) {
+            it.next();
         }
-        //System.out.println(resultat + " " + couleur);
-        return couleur;
+        return it.next();
     }
     private ArrayList<Integer> intersection(ArrayList<Integer> arrayList, ArrayList<Integer> arrayList2) {
         ArrayList<Integer> intersection = new ArrayList<>();
@@ -484,7 +484,6 @@ public class Algorithm {
 
     public int fitness (HashMap<Integer, Integer> solution, Graph g) {
         int fitness = 0;
-        if (Thread.currentThread().isInterrupted()) return -1;
         for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
                 int sommet = entry.getKey();
                 int couleur = solution.get(sommet);
