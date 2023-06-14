@@ -8,7 +8,7 @@ public class Main {
         
         //writeSudokuIntoFile(9);
 
-      // /*
+       /*
         Parseur p = new Parseur();
         Graph g = p.parse("TER/Sudoku/3_8_4");
         //Graph g = new Graph(3);
@@ -36,10 +36,10 @@ public class Main {
         System.out.println((System.currentTimeMillis()-start));
         a.graph.printValue();
         System.out.println("*********");
-       //*/ 
-     /*         
+       */ 
+              
     for (int k = 3; k< 4; k++) {  
-        for (int i = 3; i< 9; i++) {
+        for (int i = 8; i< 9; i++) {
             double temps = 0;
             int réussite = 0;
             for (int j=0; j< 100; j++) {
@@ -61,6 +61,7 @@ public class Main {
                         temps += time;
                         réussite++;
                     }
+                    System.out.println("c'est fini");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -69,7 +70,7 @@ public class Main {
             System.out.println("Sudoku de type " + Integer.toString(k) + " " + Integer.toString(i) + " temps moyen :" + Double.toString((double) (temps/(réussite*1000)))  + " réussite : " + Integer.toString(réussite)+ "/100"); 
         }
     } 
-    */
+    //*/
     }
     static class ProgramRunnable extends Thread {
         public void run () {

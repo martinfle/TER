@@ -3,12 +3,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Map.Entry;
+
 
 public class Algorithm {
     Graph graph;
@@ -22,10 +24,10 @@ public class Algorithm {
         int k = 0;
         while (true) {
             v = -1;
-            for (Map.Entry<Integer, List<Integer>> entry: graph.values.entrySet()) {
+            for (Map.Entry<Integer, HashSet<Integer>> entry: graph.values.entrySet()) {
                 if(entry.getValue().size() == 1) {
                     v = entry.getKey();
-                    k= entry.getValue().get(0);
+                    k= entry.getValue().iterator().next();
                     graph.puzzle[v/(graph.n* graph.n)][v%(graph.n*graph.n)] = k;
                     break;
                 }
@@ -33,7 +35,7 @@ public class Algorithm {
             if (v == -1) return;
             graph.values.remove(v);
             graph.adjList.remove(v);
-            for (Map.Entry<Integer, List<Integer>> entry: graph.adjList.entrySet()) {
+            for (Map.Entry<Integer, HashSet<Integer>> entry: graph.adjList.entrySet()) {
                 if (entry.getValue().contains(v)) {
                     int key = entry.getKey();
                     graph.values.get(key).remove((Object) k);
@@ -82,7 +84,7 @@ public class Algorithm {
             //System.out.println("MAGX : " +s); 
             // Améliorer la solution avec l'algorithme Tabu                    
             s = ITS(s, 100000); 
-            if (Thread.currentThread().isInterrupted()) return;
+            if (s == null) return;
             /* 
             System.out.println("ITS : " + s);
             System.out.println("*********");
@@ -167,7 +169,7 @@ public class Algorithm {
             
             // Faire une recherche Tabou avec la solution c.
             c = TS(c, alpha, graph);
-            if(Thread.currentThread().isInterrupted()) return null;
+            if(c == null) return null;
 
             int new_fitness = fitness(c, graph);
             if (new_fitness == -1) return null;
@@ -178,7 +180,7 @@ public class Algorithm {
             // si c1 n'est pas une coloration légale, faire une perturbation.
             if (new_fitness != 0) {
                 c = perturbation_procedure(c);
-                if (Thread.currentThread().isInterrupted()) return null;
+                if (c == null) return null;
             } else {
                 return best_color;
             }
@@ -217,13 +219,13 @@ public class Algorithm {
             c.remove(i);
         }
 
-        for (Map.Entry<Integer, List<Integer>> entry : g.adjList.entrySet()) {
+        for (Map.Entry<Integer, HashSet<Integer>> entry : g.adjList.entrySet()) {
             if (entry.getValue().removeAll(X));
         }
        
         // Faire le TS avec ce nouveau graph
         HashMap<Integer, Integer> amelioration = TS(c, 100, g);
-        if (Thread.currentThread().isInterrupted()) return null;
+        if (amelioration == null) return null;
         // Fusionner G' et G
         for (Map.Entry<Integer, Integer> entry : amelioration.entrySet()) {
             c1.put(entry.getKey(), entry.getValue());
@@ -241,8 +243,9 @@ public class Algorithm {
         HashMap<Integer, Integer> sBest = new HashMap<>(c);
         HashMap<Integer, Integer> bestCandidate = new HashMap<>(c);
         ArrayList<Integer> sVoisins = conflicting_vertex(bestCandidate, g); 
-        int best_f = fitness(c,g);        
-        //System.out.println("On commence le tabou :" + best_f);
+        int best_f = fitness(c,g);   
+        if (best_f == -1) return null;     
+        System.out.println("On commence le tabou :" + best_f);
         boolean b = false;
         int maxTabuSize =(int) (0.6 * best_f + Math.random()*10);
         // boucle principale
@@ -260,9 +263,9 @@ public class Algorithm {
                 int currentColor = sommet.getValue();
                
                 // Parcours les couleurs possibles
-                for (int j = 0; j< g.values.get(sommet.getKey()).size(); j++) {
-                    if (g.values.get(sommet.getKey()).get(j) != currentColor) {                        
-                        c.put(sommet.getKey(),g.values.get(sommet.getKey()).get(j));                        
+                for (int j : g.values.get(sommet.getKey())) {
+                    if (j != currentColor) {                        
+                        c.put(sommet.getKey(),j);                        
                         int fitness = fitness(c,g);   
                         if (fitness == -1) return null;                     
                         if (fitness < best_fc && !isTabu(sommet, tabuList)) {                            
@@ -283,7 +286,7 @@ public class Algorithm {
             if (best_fc < best_f) {                
                 sBest = new HashMap<>(bestCandidate);
                 best_f = best_fc;
-                //System.out.println("new record: " + best_f);
+                System.out.println("    new record: " + best_f);
             }
 
             if (bestMove != null) {
@@ -432,7 +435,13 @@ public class Algorithm {
 
     private int chooseRandomColor (int value, Graph g) {
         int resultat = (int) (Math.random() * g.values.get(value).size());
-        return g.values.get(value).get(resultat);
+        Iterator<Integer> it = g.values.get(value).iterator();
+        int couleur = -1;
+        for (int i=0; i<= resultat; i++) {
+            couleur = it.next();
+        }
+        //System.out.println(resultat + " " + couleur);
+        return couleur;
     }
     private ArrayList<Integer> intersection(ArrayList<Integer> arrayList, ArrayList<Integer> arrayList2) {
         ArrayList<Integer> intersection = new ArrayList<>();
@@ -464,7 +473,7 @@ public class Algorithm {
         for (int i=0; i< p; i++) {
             P.add(new HashMap<>());
             for (int j=0; j < graph.values.size(); j++) {
-                for (Map.Entry<Integer, List<Integer>> entry: graph.values.entrySet()) {
+                for (Map.Entry<Integer, HashSet<Integer>> entry: graph.values.entrySet()) {
                     int val = chooseRandomColor(entry.getKey(), graph);
                     P.get(i).put(entry.getKey(), val);
                 }
@@ -475,10 +484,11 @@ public class Algorithm {
 
     public int fitness (HashMap<Integer, Integer> solution, Graph g) {
         int fitness = 0;
-        for (Map.Entry<Integer, List<Integer>> entry: g.adjList.entrySet()) {
+        if (Thread.currentThread().isInterrupted()) return -1;
+        for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
                 int sommet = entry.getKey();
                 int couleur = solution.get(sommet);
-                if (Thread.currentThread().isInterrupted()) return -1;
+                
                 for (int voisin : entry.getValue()) {
                         if (solution.get(voisin) == couleur) fitness ++;
                     }
@@ -489,7 +499,7 @@ public class Algorithm {
 
     public ArrayList<Integer> conflicting_vertex (HashMap<Integer, Integer> solution, Graph g) {
         ArrayList<Integer> resultat = new ArrayList<>();
-        for (Map.Entry<Integer, List<Integer>> entry: g.adjList.entrySet()) {
+        for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
             int sommet = entry.getKey();
             int couleur = solution.get(sommet);
             for (int voisin : entry.getValue()) {

@@ -4,38 +4,27 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class Graph {
 
     int[][] puzzle;
-    HashMap<Integer, List<Integer>> values;
-    HashMap<Integer, List<Integer>> adjList;
+    HashMap<Integer, HashSet<Integer>> values;
+    HashMap<Integer, HashSet<Integer>> adjList;
     final int n;
     static Random rand;
 
     public Graph (Graph g) {
         this.n = g.n;        
         this.puzzle = new int[n*n][n*n]; 
-        this.values = new HashMap<>();
-        this.adjList = new HashMap<>(); 
+        this.values = new HashMap<>(g.values);
+        this.adjList = new HashMap<>(g.adjList); 
         for (int i=0; i< n*n; i++) {
             for (int j = 0; j< n*n; j++) {
                 this.puzzle[i][j] = g.puzzle[i][j];
             }
         }
-        for (Map.Entry<Integer, List<Integer>> entry: g.values.entrySet()) {
-            ArrayList<Integer> value = new ArrayList<>();
-            ArrayList<Integer> adj = new ArrayList<>();
-            for (int i=0; i< entry.getValue().size(); i++) {
-                value.add(entry.getValue().get(i));
-            }
-            for (int i=0; i< g.adjList.get(entry.getKey()).size(); i++) {
-                adj.add(g.adjList.get(entry.getKey()).get(i));
-            }
-            this.values.put(entry.getKey(), value);
-            this.adjList.put(entry.getKey(), adj);
-
-        }
+        
     }
 
     public Graph (int n) {
@@ -46,8 +35,8 @@ public class Graph {
         adjList = new HashMap<>();
 
         for (int i = 0; i< n*n*n*n; i++) {
-            adjList.put(i, new ArrayList<>());
-            values.put(i, new ArrayList<>());
+            adjList.put(i, new HashSet<>());
+            values.put(i, new HashSet<>());
         }
 
         for (int i = 0; i< n*n; i++) {
@@ -107,10 +96,10 @@ public class Graph {
     }
 
     public void printAdjList () {
-        for (Map.Entry<Integer, List<Integer>> entry: adjList.entrySet()) {
+        for (Map.Entry<Integer, HashSet<Integer>> entry: adjList.entrySet()) {
             System.out.print(entry.getKey() + " : ");
-            for (int i = 0; i< entry.getValue().size(); i++) {
-                System.out.print(entry.getValue().get(i) + " ");
+            for (int i : entry.getValue()) {
+                System.out.print(i + " ");
             }
             System.out.println();
         }
@@ -236,10 +225,10 @@ public class Graph {
     }
 
     public void printGraph () {
-        for (Map.Entry<Integer, List<Integer>> entry: values.entrySet()) {
+        for (Map.Entry<Integer, HashSet<Integer>> entry: values.entrySet()) {
             System.out.print(entry.getKey() + " : ");
-            for (int i = 0; i< entry.getValue().size(); i++) {
-                System.out.print(entry.getValue().get(i) + " ");
+            for (int i : entry.getValue()) {
+                System.out.print(i + " ");
             }
             System.out.println();
         }
