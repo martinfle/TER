@@ -84,7 +84,7 @@ public class Algorithm {
              
             // Améliorer la solution avec l'algorithme Tabu                    
             s = ITS(s, 100000); 
-           
+
             int fitness_s = fitness(s, graph);
             
             if (fitness_s < best_fitness) {
@@ -166,7 +166,7 @@ public class Algorithm {
             
             // Faire une recherche Tabou avec la solution c.
             c = TS(c, alpha, graph);
-            
+
 
             int new_fitness = fitness(c, graph);
             
@@ -177,7 +177,7 @@ public class Algorithm {
             // si c1 n'est pas une coloration légale, faire une perturbation.
             if (new_fitness != 0) {
                 c = perturbation_procedure(c);
-                
+
             } else {
                 return best_color;
             }
@@ -221,9 +221,11 @@ public class Algorithm {
         }
        
 
+
         // Faire le TS avec ce nouveau graph'
         HashMap<Integer, Integer> amelioration = TS(c, 100000, g);
         
+
         // Fusionner G' et G
         for (Map.Entry<Integer, Integer> entry : amelioration.entrySet()) {
             c1.put(entry.getKey(), entry.getValue());
@@ -234,17 +236,18 @@ public class Algorithm {
 
     // Tabou Search
     // TODO: Ajouter le fait de déplacer un sommet en conflit
-    private HashMap<Integer, Integer> TS(HashMap<Integer, Integer> c, int alpha, Graph g) {
-        
+    private HashMap<Integer, Integer> TS(HashMap<Integer, Integer> c, int alpha, Graph g) {        
         //System.out.println("Valeurs a améliorer : " + c);
         HashMap<Map.Entry<Integer, Integer>, Integer> tabuList = new HashMap<>();     
         HashMap<Integer, Integer> sBest = new HashMap<>(c);
         HashMap<Integer, Integer> bestCandidate = new HashMap<>(c);
         ArrayList<Integer> sVoisins = conflicting_vertex(bestCandidate, g); 
+
         Map.Entry<Integer, Integer> sommet = null;
         int best_f = fitness(c,g);  
             
         //System.out.println("On commence le tabou :" + best_f);
+
         boolean b = false;
         int maxTabuSize =(int) (0.6 * best_f + Math.random()*10);
         // boucle principale
@@ -263,6 +266,7 @@ public class Algorithm {
                 int currentColor = sommet.getValue();
                 
                 // Parcours les couleurs possibles
+
                 for (int j : g.values.get(sommet.getKey())) {
                     if (j != currentColor) {                        
                         c.put(sommet.getKey(),j);                        
@@ -275,6 +279,7 @@ public class Algorithm {
                             //System.out.println("old fitness :"+ f_sommet + " fitness : "+ fitness + " sommet changé : "+ sommet); 
                             f_sommet = fitness;
                                
+
                         }
                     }
                    
@@ -284,6 +289,7 @@ public class Algorithm {
                 c.put(sommet.getKey(), currentColor);
                 
             }
+
             if (b) { 
                 best_fc = fitness(bestCandidate, g);                              
                 if (best_fc < best_f) {                
@@ -292,6 +298,7 @@ public class Algorithm {
                     if (best_f == 0) return sBest;
                     //System.out.println("    new record: " + best_f + " sommet changé : " + bestMove);
                 }
+
             }
             if (bestMove != null) {
                 // On ajoute le meilleur mouvement
@@ -487,16 +494,18 @@ public class Algorithm {
     }
 
     public int fitness (HashMap<Integer, Integer> solution, Graph g) {
+
         int fitness = 0;        
         for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
                 int sommet = entry.getKey();
                 int couleur = solution.get(sommet);
                 
+
                 for (int voisin : entry.getValue()) {
                         if (solution.get(voisin) == couleur) fitness ++;
-                    }
-                           
+                    }                           
         }
+        
         return fitness;
     }
 
