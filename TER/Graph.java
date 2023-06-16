@@ -17,14 +17,19 @@ public class Graph {
     public Graph (Graph g) {
         this.n = g.n;        
         this.puzzle = new int[n*n][n*n]; 
-        this.values = new HashMap<>(g.values);
-        this.adjList = new HashMap<>(g.adjList); 
+        this.values = new HashMap<>();
+        this.adjList = new HashMap<>(); 
         for (int i=0; i< n*n; i++) {
             for (int j = 0; j< n*n; j++) {
                 this.puzzle[i][j] = g.puzzle[i][j];
             }
         }
-        
+        for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
+            this.adjList.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        }
+        for (Map.Entry<Integer, HashSet<Integer>> entry: g.values.entrySet()) {
+            this.values.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        }
     }
 
     public Graph (int n) {
@@ -95,9 +100,7 @@ public class Graph {
         }
     }
 
-    public void printAdjList () {
-        int edge = 0;
-        int edge2 = 0;
+    public void printAdjList () {        
         for (Map.Entry<Integer, HashSet<Integer>> entry: adjList.entrySet()) {
             
             for (Integer i : entry.getValue()) {                

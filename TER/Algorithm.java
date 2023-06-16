@@ -4,12 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.Map.Entry;
 
 
 public class Algorithm {
@@ -47,10 +42,9 @@ public class Algorithm {
         }
     }
 
-    public int MMCOL () {        
+    public int MMCOL (int p, int maxGenerations, int maxIter, int alpha) {        
         // Générer p solutions initiales à G.
-        ArrayList<HashMap<Integer, Integer>> P = population_Initialisation(20);
-        int maxGenerations = 100;        
+        ArrayList<HashMap<Integer, Integer>> P = population_Initialisation(p);            
         // Enregistrer la solution initiale de P avec le meilleur score.
         int best_fitness = fitness(P.get(0), graph);        
         HashMap<Integer, Integer> best_solution = P.get(0);
@@ -63,11 +57,10 @@ public class Algorithm {
             }
         }
         if (best_fitness == 0) {
-            return 1;
+            return 100;
         }
         
-        do {
-            //System.out.println("best so far : " + best_solution + " " + best_fitness);
+        do {           
             
             // Sélectionner deux solutions de P au hasard.
             int i1 = (int) (Math.random() * P.size());
@@ -75,6 +68,7 @@ public class Algorithm {
             while (i1 == i2) {
                 i2 = (int) (Math.random() * P.size());
             }
+            //System.out.println("i1 : " + i1 + " i2 : " + i2);
             HashMap<Integer, Integer> s1 = P.get(i1);           
             HashMap<Integer, Integer> s2 = P.get(i2);
            
@@ -83,38 +77,37 @@ public class Algorithm {
             
              
             // Améliorer la solution avec l'algorithme Tabu                    
-            s = ITS(s, 100000); 
+            s = ITS(s, alpha, maxIter); 
 
-            int fitness_s = fitness(s, graph);
-            
+            int fitness_s = fitness(s, graph);            
             if (fitness_s < best_fitness) {
                 best_solution = s;
-                best_fitness = fitness_s;
-                //System.out.println("new fitness : " + best_fitness);
+                best_fitness = fitness_s;                
             }
             // Population updating
             P.add(s);
             ArrayList<Double> score = new ArrayList<>();
             for (int i=0; i< P.size(); i++) {
                 score.add(score(P, i));
-            }            
-            double lowest1 = Integer.MAX_VALUE;
-            double lowest2 = Integer.MAX_VALUE;
+            }    
+                    
+            double lowest1 = Integer.MIN_VALUE;
+            double lowest2 = Integer.MIN_VALUE;
             int cw = -1;
             int csw = -1;
             for (int i=0; i< score.size(); i++) {
-                if (score.get(i) < lowest1) {
+                if (score.get(i) > lowest1) {
                     lowest2 = lowest1;
                     lowest1 = score.get(i);
                     csw = cw;
                     cw = i;
-                } else if (i < lowest2 && i != lowest1) {
+                } else if (i > lowest2 && i != lowest1) {
                     lowest2 = score.get(i);
                     csw = i;
                 }
             }
             if (cw == -1) return -1;
-            if (cw == P.size()-1) P.remove(cw);
+            if (cw != P.size()-1) P.remove(cw);
             else {
                 double d = Math.random();
                 if (d < 0.8) P.remove(cw);
@@ -122,14 +115,14 @@ public class Algorithm {
             }
             maxGenerations --;            
         } while (best_fitness != 0 && maxGenerations >= 0);
-        System.out.println("Génération : " + maxGenerations);
+        
         
         // On remplace le résultat par la solution trouvé
         for (Map.Entry<Integer, Integer> entry: best_solution.entrySet()) {
             graph.puzzle[entry.getKey()/(graph.n*graph.n)][entry.getKey()%(graph.n*graph.n)] = entry.getValue();
         }
-        if (best_fitness == 0) return 1;
-        return 0;
+        if (best_fitness == 0) return maxGenerations+1;
+        return maxGenerations+1;
     }
     
     private int distance (HashMap<Integer, Integer> c1, HashMap<Integer, Integer> c2) {
@@ -156,12 +149,11 @@ public class Algorithm {
         return fitness(p.get(i), graph) + Math.exp((0.08 * graph.n * graph.n)/ diversity(p, i));
     }
 
-    private HashMap<Integer, Integer> ITS (HashMap<Integer, Integer> c, int alpha) {
+    private HashMap<Integer, Integer> ITS (HashMap<Integer, Integer> c, int alpha, int maxLSIters) {
         HashMap<Integer, Integer> best_color = c;
-        int best_fitness = fitness(c, graph);
+        int best_fitness = fitness(c, graph);       
         
-        int maxLSIters = 100;  
-        //HashMap<Integer, Integer> c1 = new HashMap<>();      
+             
         do {
             
             // Faire une recherche Tabou avec la solution c.
@@ -176,7 +168,7 @@ public class Algorithm {
             }
             // si c1 n'est pas une coloration légale, faire une perturbation.
             if (new_fitness != 0) {
-                c = perturbation_procedure(c);
+                c = perturbation_procedure(c, alpha);
 
             } else {
                 return best_color;
@@ -187,7 +179,7 @@ public class Algorithm {
     }
 
     // Fonction pour partir d'un minimum local
-    private HashMap<Integer, Integer> perturbation_procedure(HashMap<Integer, Integer> c1) {
+    private HashMap<Integer, Integer> perturbation_procedure(HashMap<Integer, Integer> c1, int alpha) {
         // Ne garder que les sommets qui posent problème
         ArrayList<Integer> X = new ArrayList<>();
         
@@ -206,13 +198,13 @@ public class Algorithm {
         for (int i=0; i< midSize; i++) {
             X.remove(0);
         }
-        HashMap<Integer, Integer> c = new HashMap<>();
-        for (Map.Entry<Integer, Integer> entry : c1.entrySet()) {
-            c.put(entry.getKey(), entry.getValue());
-        }
+        HashMap<Integer, Integer> c = new HashMap<>(c1);        
         for (Integer i : X) {
             g.values.remove(i);
             g.adjList.remove(i);
+            for (Map.Entry<Integer, HashSet<Integer>> entry : g.adjList.entrySet()) {
+                if (entry.getValue().contains(i)) entry.getValue().remove(i);
+            }
             c.remove(i);
         }
 
@@ -223,7 +215,7 @@ public class Algorithm {
 
 
         // Faire le TS avec ce nouveau graph'
-        HashMap<Integer, Integer> amelioration = TS(c, 100000, g);
+        HashMap<Integer, Integer> amelioration = TS(c, alpha, g);
         
 
         // Fusionner G' et G
@@ -234,8 +226,7 @@ public class Algorithm {
         return c1;
     }
 
-    // Tabou Search
-    // TODO: Ajouter le fait de déplacer un sommet en conflit
+    // Tabou Search    
     private HashMap<Integer, Integer> TS(HashMap<Integer, Integer> c, int alpha, Graph g) {        
         //System.out.println("Valeurs a améliorer : " + c);
         HashMap<Map.Entry<Integer, Integer>, Integer> tabuList = new HashMap<>();     
@@ -246,8 +237,7 @@ public class Algorithm {
         Map.Entry<Integer, Integer> sommet = null;
         int best_f = fitness(c,g);  
             
-        //System.out.println("On commence le tabou :" + best_f);
-
+        
         boolean b = false;
         int maxTabuSize =(int) (0.6 * best_f + Math.random()*10);
         // boucle principale
@@ -276,7 +266,6 @@ public class Algorithm {
                             bestCandidate = new HashMap<>(c);
                             b = true;
                             bestMove = sommet;
-                            //System.out.println("old fitness :"+ f_sommet + " fitness : "+ fitness + " sommet changé : "+ sommet); 
                             f_sommet = fitness;
                                
 
@@ -296,7 +285,6 @@ public class Algorithm {
                     sBest = new HashMap<>(bestCandidate);
                     best_f = best_fc;
                     if (best_f == 0) return sBest;
-                    //System.out.println("    new record: " + best_f + " sommet changé : " + bestMove);
                 }
 
             }
@@ -325,9 +313,7 @@ public class Algorithm {
         return false;
     }
     public HashMap <Integer, Integer> MAGX (HashMap<Integer, Integer> s1, HashMap<Integer, Integer> s2, Graph g) {
-        int cc = 0;
-        //System.out.println("s1: " + s1);
-        //System.out.println("s2: " + s2);
+        int cc = 0;        
         ArrayList<Integer> residualCapacity = getResidualCapacity();        
         HashMap<Integer, ArrayList<Integer>> c0 = new HashMap<>();
         HashMap<Integer, ArrayList<Integer>> c1 = new HashMap<>();
@@ -393,7 +379,7 @@ public class Algorithm {
                 }
             }
             cc++;
-            //System.out.println("c0 : " + c0);
+           
         }
         // Remplir les classes vides avec les éléments restants communs.
         // Puis supprimer les éléments restant
@@ -403,20 +389,7 @@ public class Algorithm {
                     c0.put(i+1, intersection(c1.get(i+1), c2.get(i+1)));                    
                 }
             }
-        }
-        //System.out.println("Remplissage des cases vides " + c0);
-        // assigner une couleur aléatoire au sommets restants.
-        /*
-        for (Map.Entry <Integer, ArrayList<Integer>> entry: c1.entrySet()) {
-            for (int i=0; i< entry.getValue().size(); i++) {
-                int val = chooseRandomColor(entry.getValue().get(i), g);
-                if (c0.get(val) == null) c0.put(val, new ArrayList<>());
-                c0.get(val).add(entry.getValue().get(i));
-            }
-        }
-        
-        System.out.println("On fait les reste : " + c0);
-        */
+        }        
         // remettre sous la bonne forme
         HashMap <Integer, Integer> result = new HashMap<>();
         for (Map.Entry <Integer, ArrayList<Integer>> entry: c0.entrySet()) {
@@ -493,19 +466,22 @@ public class Algorithm {
         return P;
     }
 
-    public int fitness (HashMap<Integer, Integer> solution, Graph g) {
+    public int fitness (HashMap<Integer, Integer> solution, Graph g)  {
 
         int fitness = 0;        
         for (Map.Entry<Integer, HashSet<Integer>> entry: g.adjList.entrySet()) {
                 int sommet = entry.getKey();
-                int couleur = solution.get(sommet);
-                
+                int couleur = solution.get(sommet);              
 
                 for (int voisin : entry.getValue()) {
-                        if (solution.get(voisin) == couleur) fitness ++;
-                    }                           
-        }
-        
+                        if (solution.get(voisin) == couleur) {
+                            fitness ++;
+                            break;
+                        }
+                        
+                    }   
+                                
+        }        
         return fitness;
     }
 
@@ -529,22 +505,7 @@ public class Algorithm {
             }
         }
         return resultat;
-    }
+    }   
+
     
-
-    private void printHashMap (HashMap <Integer, Integer> map) {
-        for (Map.Entry <Integer, Integer> entry : map.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue());            
-        }
-    }
-
-    private void printHashMap2 (HashMap <Integer, ArrayList<Integer>> map) {
-        for (Map.Entry <Integer, ArrayList<Integer>> entry : map.entrySet()) {
-            System.out.print(entry.getKey() + ": ");
-            for (int i=0; i< entry.getValue().size();i++) {
-                System.out.print(entry.getValue().get(i) + " ");
-            }   
-            System.out.println();         
-        }
-    }
 }

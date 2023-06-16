@@ -12,11 +12,11 @@ public class Main {
         //writeSudokuIntoFile(9);
 
 
-    /*
-
+    
+/*
         Parseur p = new Parseur();
 
-        Graph g = p.parse("TER/Sudoku/3_8_0");
+        Graph g = p.parse("TER/Sudoku/4_7_0");
 
         //Graph g = new Graph(3);
         //g.remplirRoot();
@@ -42,13 +42,11 @@ public class Main {
               
 
 
-    for (int k = 3; k< 4; k++) {  
+    for (int k =3; k< 4; k++) {  
         for (int i = 3; i< 9; i++) {
             double temps = 0;
             int réussite = 0;
-            int nbSommet = 0;
-            int nbArc = 0;
-            int nbCouleur = 0;
+            int nbGénération = 0;            
             for (int j=0; j< 100; j++) {
                 
                 Graph g = Parseur.parse("TER/Sudoku/"+Integer.toString(k)+"_" +Integer.toString(i)+"_"+Integer.toString(j));
@@ -56,56 +54,29 @@ public class Main {
                 a.graph.remplirGraph();
                 long start = System.currentTimeMillis();
                 ///*              
-                a.preprocess();
-                int result = a.MMCOL(); 
+                a.preprocess();                
+                int result = a.MMCOL(20,100,10,100); 
                 long end = System.currentTimeMillis() - start;
-                if (result == 1) {
+                if (result > 0) {
                     réussite ++;
                     temps += end;
-                } 
-
-                   
+                    nbGénération += result;
+                }               
                 
-                //*/
-                /*
-                a.preprocess();
-
-                nbSommet += a.graph.adjList.size();
-                for (Map.Entry<Integer, HashSet<Integer>> entry: a.graph.adjList.entrySet()) {
-                    for (Integer m : entry.getValue()) {
-                       if (entry.getKey() < m) nbArc++;
-                    }
-                }
-                for (Map.Entry<Integer, HashSet<Integer>> entry: a.graph.values.entrySet()) {            
-                    nbCouleur += entry.getValue().size();
-                }
-                */
-            }
+               
+            }            
             
-            //nbSommet = nbSommet/100;
-            //nbArc = nbArc/100;
-            //nbCouleur = nbCouleur/100;
-            System.out.println("Sudoku de type " + Integer.toString(k) + " " + Integer.toString(i) + " temps moyen :" + Double.toString((double) (temps/(réussite*1000)))  + " réussite : " + Integer.toString(réussite)+ "/100"); 
-            //System.out.println("Sudoku de type " + Integer.toString(k) + " " + Integer.toString(i) + " nbSommet moyen :" + Integer.toString(nbSommet)  + " nbArc moyen : " + Integer.toString(nbArc)+ " nbCouleur moyen : " + Integer.toString(nbCouleur));
+            System.out.println("Sudoku de type " + Integer.toString(k) + " " + Integer.toString(i) + " temps moyen :" + Double.toString((double) (temps/(réussite*1000)))  + " réussite : " + Integer.toString(réussite)+ "/100" + " nbGénération moyen : " + Double.toString((double) (nbGénération/(réussite)))); 
+            
 
         }
         
     } 
     
-    //*/
+    
 
 
-    }
-
-    static class ProgramRunnable extends Thread {
-        public void run () {            
-                long start = System.currentTimeMillis();
-                a.preprocess();
-                a.MMCOL();
-                time = System.currentTimeMillis() - start;           
-           
-        }
-    }
+    }   
     
     public static void writeSudokuIntoFile (int size) {
         Graph g = new Graph(size);
